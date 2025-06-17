@@ -24,6 +24,7 @@
     "@bbook/ui": "workspace:*",
     "@bbook/utils": "workspace:*",
     "@react-navigation/native": "^7.1.6",
+    "@supabase/supabase-js": "^2.50.0",
     "@tamagui/lucide-icons": "^1.126.12",
     "@tanstack/react-form": "^1.7.0",
     "burnt": "^0.13.0",
