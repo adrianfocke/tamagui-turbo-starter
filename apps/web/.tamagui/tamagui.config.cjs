@@ -45452,7 +45452,7 @@ var CustomToast = /* @__PURE__ */ __name(() => {
 }, "CustomToast");
 
 // ../../packages/ui/src/theme-logic.tsx
-var import_react64 = require("react");
+var import_react65 = require("react");
 
 // ../../node_modules/.pnpm/zustand@5.0.4_@types+react@19.1.3_react@19.0.0_use-sync-external-store@1.5.0_react@19.0.0_/node_modules/zustand/esm/vanilla.mjs
 var createStoreImpl = /* @__PURE__ */ __name((createState) => {
@@ -45584,7 +45584,7 @@ function isReactNative() {
 }
 __name(isReactNative, "isReactNative");
 
-// ../../node_modules/valibot/dist/index.js
+// ../../node_modules/.pnpm/valibot@1.1.0_typescript@5.8.3/node_modules/valibot/dist/index.js
 var store;
 // @__NO_SIDE_EFFECTS__
 function getGlobalConfig(config2) {
@@ -45730,6 +45730,27 @@ function maxLength(requirement, message2) {
   };
 }
 __name(maxLength, "maxLength");
+// @__NO_SIDE_EFFECTS__
+function minLength(requirement, message2) {
+  return {
+    kind: "validation",
+    type: "min_length",
+    reference: minLength,
+    async: false,
+    expects: `>=${requirement}`,
+    requirement,
+    message: message2,
+    "~run"(dataset, config2) {
+      if (dataset.typed && dataset.value.length < this.requirement) {
+        _addIssue(this, "length", dataset, config2, {
+          received: `${dataset.value.length}`
+        });
+      }
+      return dataset;
+    }
+  };
+}
+__name(minLength, "minLength");
 // @__NO_SIDE_EFFECTS__
 function _isPartiallyTyped(dataset, paths) {
   if (dataset.issues) {
@@ -46173,6 +46194,9 @@ var userSchema = object({
   first_name: optional(string()),
   last_name: optional(string()),
   username: optional(string()),
+  slug: optional(string()),
+  org_name: optional(string()),
+  org_slug: optional(string()),
   location: optional(string()),
   about: optional(string()),
   avatar_path: optional(nullable(string())),
@@ -46254,7 +46278,11 @@ var PasswordResetConfirmPayloadSchema = pipe(
 var PasswordResetConfirmResponseSchema = object({
   detail: string()
 });
+var UpdateUsernameSchema = object({
+  username: pipe(string(), minLength(3), maxLength(30), trim())
+});
 var ProfilePayloadSchema = object({
+  username: optional(pipe(string(), maxLength(30), trim())),
   first_name: optional(pipe(string(), maxLength(50), trim())),
   last_name: optional(pipe(string(), maxLength(50), trim())),
   location: optional(pipe(string(), maxLength(100), trim())),
@@ -46342,8 +46370,15 @@ var userEndpoints = {
     responseType: {}
   },
   CHECK_USERNAME: {
-    url: "/usernames/verify",
-    method: HTTP_METHODS.POST,
+    url: "/users/check_username",
+    method: HTTP_METHODS.GET,
+    requiresAuth: false,
+    requestType: {},
+    responseType: {}
+  },
+  UPDATE_USERNAME: {
+    url: "/users/username",
+    method: HTTP_METHODS.PATCH,
     requiresAuth: true,
     requestType: {},
     responseType: {}
@@ -46375,6 +46410,12 @@ var import_react62 = require("react");
 
 // ../../packages/data/src/hooks/use-upload-progress.ts
 var import_react63 = require("react");
+
+// ../../packages/data/src/hooks/use-check-username.ts
+var import_react64 = require("react");
+var CheckUsernameResponseSchema = object({
+  available: boolean()
+});
 
 // ../../packages/stores/src/theme-store.ts
 var isThemeKey = /* @__PURE__ */ __name((value) => value === "light" || value === "dark", "isThemeKey");
@@ -46437,7 +46478,7 @@ var useUserStore = create((set) => ({
 
 // ../../packages/ui/src/theme-logic.tsx
 var import_jsx_runtime76 = require("react/jsx-runtime");
-var ThemeContext = (0, import_react64.createContext)({ theme: "light" });
+var ThemeContext = (0, import_react65.createContext)({ theme: "light" });
 var ThemeProvider = /* @__PURE__ */ __name(({ children }) => {
   const theme = useThemeStore((s) => s.theme);
   const setThemeStore = useThemeStore(
@@ -46448,7 +46489,7 @@ var ThemeProvider = /* @__PURE__ */ __name(({ children }) => {
 }, "ThemeProvider");
 
 // ../../packages/ui/src/components/parts/inputParts.tsx
-var import_react65 = require("react");
+var import_react66 = require("react");
 
 // ../../packages/ui/src/utils/tamagui-token-checker.ts
 function tamaguiTokenChecker(val, tokens3, fallback = "$2") {
@@ -46526,7 +46567,7 @@ var InputGroupImpl = InputGroupFrame.styleable(
   // @ts-expect-error Tamagui .styleable expects (props, ref)
   (props, ref) => {
     const { children, ...rest } = props;
-    const [focused, setFocused] = (0, import_react65.useState)(false);
+    const [focused, setFocused] = (0, import_react66.useState)(false);
     return /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(FocusContext.Provider, { focused, setFocused, children: /* @__PURE__ */ (0, import_jsx_runtime77.jsx)(
       InputGroupFrame,
       {
@@ -46715,9 +46756,9 @@ var Input2 = (0, import_core58.withStaticProperties)(InputContainerFrame, {
 });
 
 // ../../packages/ui/src/components/CInput.tsx
-var import_react66 = require("react");
+var import_react67 = require("react");
 var import_jsx_runtime78 = require("react/jsx-runtime");
-var CInput = (0, import_react66.forwardRef)(
+var CInput = (0, import_react67.forwardRef)(
   ({
     labelText = "Label",
     size: size6,
@@ -46728,12 +46769,14 @@ var CInput = (0, import_react66.forwardRef)(
     autoCapitalize = "none",
     keyboardType,
     autoComplete,
-    errors
+    errors,
+    id
   }, ref) => {
     const normalizedErrors = errors ? Array.isArray(errors) ? errors : [errors] : [];
     const defaultPlaceholder = secureTextEntry ? "\u2022\u2022\u2022\u2022\u2022\u2022" : "email@example.com";
-    const inputAreaRef = (0, import_react66.useRef)(null);
-    (0, import_react66.useImperativeHandle)(ref, () => ({
+    const uniqueId = id || `input-${labelText.toLowerCase()}-${Math.random().toString(36).substring(2, 9)}`;
+    const inputAreaRef = (0, import_react67.useRef)(null);
+    (0, import_react67.useImperativeHandle)(ref, () => ({
       focus: /* @__PURE__ */ __name(() => {
         if (inputAreaRef.current?.focus) {
           inputAreaRef.current.focus();
@@ -46751,7 +46794,7 @@ var CInput = (0, import_react66.forwardRef)(
       /* @__PURE__ */ (0, import_jsx_runtime78.jsx)(
         Input2.Label,
         {
-          htmlFor: `input-${labelText.toLowerCase()}`,
+          htmlFor: uniqueId,
           marginBottom: "$1.5",
           tabIndex: -1,
           children: labelText
@@ -46768,7 +46811,7 @@ var CInput = (0, import_react66.forwardRef)(
             Input2.Area,
             {
               ref: inputAreaRef,
-              id: `input-${labelText.toLowerCase()}`,
+              id: uniqueId,
               placeholder: placeholder || defaultPlaceholder,
               autoFocus: focusOnMount,
               onChangeText,
@@ -46978,7 +47021,7 @@ var Hide = /* @__PURE__ */ __name(({
 }, "Hide");
 
 // ../../packages/ui/src/components/CAvatar.tsx
-var import_react67 = require("react");
+var import_react68 = require("react");
 
 // ../../packages/ui/src/config/constants.ts
 var API_BASE_URL2 = "http://localhost:8000/api/v1";
@@ -47004,7 +47047,7 @@ var CAvatar = /* @__PURE__ */ __name(({
   onImageLoadError,
   ...props
 }) => {
-  const fallbackText = (0, import_react67.useMemo)(() => {
+  const fallbackText = (0, import_react68.useMemo)(() => {
     return text.substring(0, 2).toUpperCase();
   }, [text]);
   console.log("CAvatar received props:", {
@@ -47058,7 +47101,7 @@ var CAvatar = /* @__PURE__ */ __name(({
 }, "CAvatar");
 
 // ../../packages/ui/src/components/InlineEditable.tsx
-var import_react68 = require("react");
+var import_react69 = require("react");
 var import_react_native2 = __toESM(require_cjs(), 1);
 var import_jsx_runtime81 = require("react/jsx-runtime");
 var InlineEditable = /* @__PURE__ */ __name(({
@@ -47079,18 +47122,18 @@ var InlineEditable = /* @__PURE__ */ __name(({
   renderDisplay,
   renderInput
 }) => {
-  const handleInputChange = (0, import_react68.useCallback)(
+  const handleInputChange = (0, import_react69.useCallback)(
     (text) => {
       onChange(text);
     },
     [onChange]
   );
-  const handleSave = (0, import_react68.useCallback)(() => {
+  const handleSave = (0, import_react69.useCallback)(() => {
     if (disabled) return;
     console.log("InlineEditable handleSave called");
     onEditEnd();
   }, [disabled, onEditEnd]);
-  const handleCancel = (0, import_react68.useCallback)(() => {
+  const handleCancel = (0, import_react69.useCallback)(() => {
     console.log("InlineEditable handleCancel called");
     onEditEnd();
   }, [onEditEnd]);
@@ -47098,7 +47141,7 @@ var InlineEditable = /* @__PURE__ */ __name(({
     onEnter: handleSave,
     onEscape: handleCancel
   });
-  const handleDisplayClick = (0, import_react68.useCallback)(() => {
+  const handleDisplayClick = (0, import_react69.useCallback)(() => {
     if (disabled) return;
     console.log("InlineEditable handleDisplayClick called");
     const result = onEditStart?.(void 0, id);
@@ -47108,7 +47151,7 @@ var InlineEditable = /* @__PURE__ */ __name(({
       return;
     }
   }, [disabled, id, onEditStart]);
-  const defaultRenderDisplay = (0, import_react68.useCallback)(
+  const defaultRenderDisplay = (0, import_react69.useCallback)(
     ({ value: value2, onEdit, showUndo: showUndo2, onUndo: onUndo2 }) => {
       console.log("InlineEditable defaultRenderDisplay:", {
         showUndo: showUndo2,
@@ -47154,7 +47197,7 @@ var InlineEditable = /* @__PURE__ */ __name(({
     },
     [disabled, placeholder]
   );
-  const defaultRenderInput = (0, import_react68.useCallback)(
+  const defaultRenderInput = (0, import_react69.useCallback)(
     ({
       value: value2,
       onChange: onChange2,
@@ -47246,7 +47289,7 @@ var InlineEditable = /* @__PURE__ */ __name(({
 InlineEditable.displayName = "InlineEditable";
 
 // ../../packages/ui/src/components/EditableField.tsx
-var import_react69 = require("react");
+var import_react70 = require("react");
 var import_react_native3 = __toESM(require_cjs(), 1);
 var import_jsx_runtime82 = (
   // If we have custom children, wrap them in a pressable container
@@ -47352,7 +47395,7 @@ function EditableField({
       }
     }, "onTab")
   });
-  const handleKeyDown = (0, import_react69.useCallback)(
+  const handleKeyDown = (0, import_react70.useCallback)(
     (e) => {
       console.log(`KeyDown event in field ${fieldId}, key:`, e.key);
       keyboardHandlers(e);
@@ -47400,7 +47443,7 @@ function EditableField({
               autoFocus,
               onSubmitEditing
             }) => {
-              const inputRef = (0, import_react69.useRef)(null);
+              const inputRef = (0, import_react70.useRef)(null);
               if (import_react_native3.Platform.OS === "web") {
                 return /* @__PURE__ */ (0, import_jsx_runtime82.jsx)(
                   "div",
@@ -47492,7 +47535,7 @@ function EditableField({
 __name(EditableField, "EditableField");
 
 // ../../packages/ui/src/components/TextAreaRenderer.tsx
-var import_react70 = require("react");
+var import_react71 = require("react");
 var import_react_native4 = __toESM(require_cjs(), 1);
 var import_jsx_runtime83 = require("react/jsx-runtime");
 var TextAreaRenderer = /* @__PURE__ */ __name(({
@@ -47509,16 +47552,16 @@ var TextAreaRenderer = /* @__PURE__ */ __name(({
   minHeight = 150,
   maxHeight
 }) => {
-  const textAreaRef = (0, import_react70.useRef)(null);
-  const handleSave = (0, import_react70.useCallback)(() => {
+  const textAreaRef = (0, import_react71.useRef)(null);
+  const handleSave = (0, import_react71.useCallback)(() => {
     console.log("TextAreaRenderer: Save button clicked");
     onSubmitEditing?.();
   }, [onSubmitEditing]);
-  const handleCancel = (0, import_react70.useCallback)(() => {
+  const handleCancel = (0, import_react71.useCallback)(() => {
     console.log("TextAreaRenderer: Cancel button clicked");
     onCancel?.();
   }, [onCancel]);
-  const handleKeyDownWrapper = (0, import_react70.useCallback)(
+  const handleKeyDownWrapper = (0, import_react71.useCallback)(
     (e) => {
       if (onKeyDown) {
         onKeyDown(e);
@@ -47573,7 +47616,7 @@ var TextAreaRenderer = /* @__PURE__ */ __name(({
 }, "TextAreaRenderer");
 
 // ../../packages/ui/src/components/EditableTextArea.tsx
-var import_react71 = require("react");
+var import_react72 = require("react");
 var import_jsx_runtime84 = require("react/jsx-runtime");
 function EditableTextArea(props) {
   const {
@@ -47586,7 +47629,7 @@ function EditableTextArea(props) {
     placeholder,
     height = 150
   } = props;
-  const customRenderer = (0, import_react71.useCallback)(
+  const customRenderer = (0, import_react72.useCallback)(
     ({
       value: value2,
       onChange: onChange2,
