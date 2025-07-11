@@ -18,7 +18,11 @@ import { tokenService } from '../services/token-service';
 import { errorTracker } from '../services/error-tracking';
 
 // Import supabaseLogin for optional Supabase authentication
-import { supabaseLogin, supabaseSignUp } from '../supabase/requests';
+import {
+  supabaseLogin,
+  supabaseSignUp,
+  supabaseSignOut,
+} from '../supabase/requests';
 
 type UseLoginMutationOptions = {
   onSuccess?: (response: LoginResponse) => void;
@@ -152,33 +156,18 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-      console.log('Logging out user');
+      console.log('Logging out user (Supabase)');
       // Get current user email
       const currentUser = queryClient.getQueryData<CurrentUser | null>([
         'currentUser',
       ]);
       const userId = currentUser?.email || 'current_user';
 
-      // Get the current token
-      const token = await tokenService.getValidToken(userId);
-
-      if (token) {
-        try {
-          // Call the logout endpoint
-          console.log('Calling logout endpoint');
-          await apiClient.post(
-            API_ENDPOINTS.AUTH.LOGOUT.url,
-            EmptyResponseSchema,
-            {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              skipValidation: true, // No response expected
-            }
-          );
-        } catch (error) {
-          console.error('Error calling logout endpoint:', error);
-          // Continue with local logout even if API call fails
-        }
+      // Sign out from Supabase
+      const signOutSuccess = await supabaseSignOut();
+      if (!signOutSuccess) {
+        console.error('Error signing out from Supabase');
+        throw new Error('Error signing out from Supabase');
       }
 
       // Remove tokens

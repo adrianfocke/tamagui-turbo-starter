@@ -17,3 +17,9 @@ export async function supabaseSignUp(email: string, password: string) {
   if (error) throw error;
   return data;
 }
+
+export async function supabaseSignOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  return true;
+}
