@@ -45584,7 +45584,7 @@ function isReactNative() {
 }
 __name(isReactNative, "isReactNative");
 
-// ../../node_modules/.pnpm/valibot@1.1.0_typescript@5.8.3/node_modules/valibot/dist/index.js
+// ../../node_modules/valibot/dist/index.js
 var store;
 // @__NO_SIDE_EFFECTS__
 function getGlobalConfig(config2) {
