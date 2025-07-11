@@ -225,24 +225,25 @@ export const useCurrentUser = (): {
   const { data, isLoading, error, refetch } = useQuery<User | null>({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      console.log('Fetching current user data');
-      // Try to get a valid token
-      const token = await tokenService.getValidToken('current_user');
-      console.log('Token available:', !!token);
-      if (!token) return null;
-
+      console.log('Fetching current user data from Supabase');
+      // Get the current user from Supabase
       try {
-        // Fetch user profile
-        const result = await apiClient.get(
-          API_ENDPOINTS.USER.GET_PROFILE_FOR_USER.url,
-          userSchema,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        console.log('User profile fetch result:', result.success);
-        return result.success ? result.data : null;
+        const { data: user, error: supabaseError } = await import(
+          '../supabase'
+        ).then((m) => m.supabase.auth.getUser());
+        if (supabaseError) {
+          throw supabaseError;
+        }
+        if (!user || !user.user || !user.user.email) {
+          return null;
+        }
+        // Return user in the expected shape
+        return {
+          email: user.user.email,
+          ...user.user,
+        } as any; //TODO: Replace with proper User type when available
       } catch (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('Error fetching user from Supabase:', error);
         return null;
       }
     },
