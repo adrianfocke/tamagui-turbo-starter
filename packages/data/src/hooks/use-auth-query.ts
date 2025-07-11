@@ -17,6 +17,9 @@ import {
 import { tokenService } from '../services/token-service';
 import { errorTracker } from '../services/error-tracking';
 
+// Import supabaseLogin for optional Supabase authentication
+import { supabaseLogin, supabaseSignUp } from '../supabase/requests';
+
 type UseLoginMutationOptions = {
   onSuccess?: (response: LoginResponse) => void;
   onError?: (error: Error) => void;
@@ -27,6 +30,13 @@ export const useLoginMutation = (options?: UseLoginMutationOptions) => {
 
   return useMutation({
     mutationFn: async (credentials: LoginPayload) => {
+
+      const login = await supabaseLogin(
+        credentials.email,
+        credentials.password
+      );
+      console.log('Supabase login result:', login);
+
       try {
         const result = await apiClient.post(
           API_ENDPOINTS.AUTH.LOGIN.url,
@@ -105,6 +115,10 @@ export const useSignupMutation = (options?: UseSignupMutationOptions) => {
 
   return useMutation({
     mutationFn: async (data: SignupPayload) => {
+
+      const signUp = await supabaseSignUp(data.email, data.password);
+      console.log('Supabase signup result:', signUp);
+
       const result = await apiClient.post(
         API_ENDPOINTS.AUTH.SIGNUP.url,
         SignupResponseSchema,
