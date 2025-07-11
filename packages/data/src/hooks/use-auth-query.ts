@@ -9,7 +9,7 @@ import type {
   User,
 } from '../schemas/user';
 import {
-  LoginResponseSchema,
+  // LoginResponseSchema,
   SignupResponseSchema,
   userSchema,
   EmptyResponseSchema,
@@ -30,45 +30,32 @@ export const useLoginMutation = (options?: UseLoginMutationOptions) => {
 
   return useMutation({
     mutationFn: async (credentials: LoginPayload) => {
-
-      const login = await supabaseLogin(
+      // Authenticate with Supabase (throws on error)
+      const { user, session } = await supabaseLogin(
         credentials.email,
         credentials.password
       );
-      console.log('Supabase login result:', login);
+      console.log('Supabase login result:', { user, session });
 
-      try {
-        const result = await apiClient.post(
-          API_ENDPOINTS.AUTH.LOGIN.url,
-          LoginResponseSchema,
-          credentials
+      if (!user || !session || !user.email) {
+        throw new Error(
+          'Login failed: No user, session, or email returned from Supabase.'
         );
-
-        if (!result.success) {
-          throw result.error;
-        }
-
-        // Store tokens
-        await tokenService.storeTokens(
-          result.data.access,
-          result.data.refresh,
-          'current_user' // Use consistent key for current user
-        );
-
-        return result.data;
-      } catch (error: any) {
-        // Check if this is an unverified email error (status 403 with email_verified: false)
-        if (error.status === 403 && error.data?.email_verified === false) {
-          // Create a custom error with additional metadata
-          const customError = new Error(error.data?.detail || 'Please verify your email address before logging in.');
-          (customError as any).isEmailVerificationError = true;
-          (customError as any).email = credentials.email;
-          throw customError;
-        }
-        
-        // Re-throw other errors
-        throw error;
       }
+
+      // Store tokens (access_token and refresh_token from Supabase)
+      await tokenService.storeTokens(
+        session.access_token,
+        session.refresh_token,
+        'current_user'
+      );
+
+      // Return user data in the expected shape
+      return {
+        email: user.email,
+        access: session.access_token,
+        refresh: session.refresh_token,
+      };
     },
     onSuccess: (data) => {
       // Log success for debugging
@@ -86,7 +73,7 @@ export const useLoginMutation = (options?: UseLoginMutationOptions) => {
 
       // Call user-provided success handler
       if (options?.onSuccess) {
-        options.onSuccess(data);
+        options.onSuccess(data as LoginResponse);
       }
     },
     onError: (error) => {
